@@ -20,6 +20,7 @@ class User(CustomBase):
     id = Column(Integer, Sequence('user_id_seq'), primary_key=True)
     username = Column(String(50)) #shadowaryan 
     chat_id = Column(Integer) #123456789
+    chat_type = Column(String(50)) #private , group , channel
     collections = relationship('Collection', secondary = 'user_collection', back_populates='users')
 
 class Collection(CustomBase):
