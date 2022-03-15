@@ -38,15 +38,16 @@ def start(update, context):
     platform = User(username=update.effective_user.username,chat_id=user_chat_id,platform='Telegram')
     user = Telegram_User(username=update.effective_user.username,chat_id=user_chat_id,chat_type=user_chat_type)
 
-    if not session.query(session.query(Telegram_User).filter_by(chat_id=user_chat_id).exists()).scalar():
-        session.add(user)
-        session.commit()
-        print('User_ added')
-        if not session.query(session.query(User).filter_by(chat_id=user_chat_id).exists()).scalar():
+    if not session.query(session.query(User).filter_by(chat_id=user_chat_id).exists()).scalar():
 
-            session.add(platform)
+        session.add(platform)
+        session.commit()
+        print('User added')
+        if not session.query(session.query(Telegram_User).filter_by(chat_id=user_chat_id).exists()).scalar():
+            session.add(user)
             session.commit()
-            print('User added')
+            print('User_ added')
+        
 
     
     
