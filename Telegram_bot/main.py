@@ -25,7 +25,7 @@ session = Session()
 
 
 
-TOKEN = '5221341356:AAF5D4OKX3rEHv5M3KvyY6Sg9caipj0ej-k'
+TOKEN = '5181629296:AAEO1swHrmsBotFGmItdz6JvKDSRbsWxMwY'
 
 
 #bot start command    
@@ -35,15 +35,21 @@ def start(update, context):
 
     user_chat_id = update.effective_user.id
     user_chat_type = update.effective_chat.type
+    platform = User(username=update.effective_user.username,chat_id=user_chat_id,platform='Telegram')
+    user = Telegram_User(username=update.effective_user.username,chat_id=user_chat_id,chat_type=user_chat_type)
 
-    user = User(username=update.effective_user.username,chat_id=user_chat_id,chat_type=user_chat_type)
-
-    if not session.query(session.query(User).filter_by(chat_id=user_chat_id).exists()).scalar():
+    if not session.query(session.query(Telegram_User).filter_by(chat_id=user_chat_id).exists()).scalar():
         session.add(user)
-        print('User added')
+        session.commit()
+        print('User_ added')
+        if not session.query(session.query(User).filter_by(chat_id=user_chat_id).exists()).scalar():
+
+            session.add(platform)
+            session.commit()
+            print('User added')
 
     
-    session.commit()
+    
    
 
 
@@ -52,7 +58,7 @@ def help (update, context):
     update.message.reply_text("""
     Commands:
     /help - to view commands
-    /add_collection <YOUR_NFT_COLLECTION_NAME> - to add NFT collection 
+    /add_collection <YOUR_NFT_COLLECTION_NAME_LINK> - to add NFT collection 
     """)
 
 
@@ -64,12 +70,12 @@ def add_collection(update, context):
     if url != '':
         update.message.reply_text(f"NFT Collection Name - {slug}")
     
-        user = session.query(User).filter_by(chat_id=update.effective_user.id).first()
+        user = session.query(User).filter_by(username=update.effective_user.username).first()
         collection_id = get_collection_id(slug)
         
         resp = requests.get(f'https://api.opensea.io/collection/{slug}/stats').json()['stats']
 
-        # if not session.query(session.query(Collection, User).filter(User_Collection.collection_id==collection_id, User_Collection.user_id==user.id).exists()).scalar():
+        # if not session.query(session.query(Collection, Telegram_User).filter(User_Collection.collection_id==collection_id, User_Collection.user_id==user.id).exists()).scalar():
         if session.query(User_Collection).filter(User_Collection.collection_id==collection_id, User_Collection.user_id==user.id).count() == 0:
             collection = session.query(Collection).filter_by(id=collection_id).first()
             user.collections.append(collection)
@@ -94,7 +100,7 @@ def handle_message(update,context):
 
 
 if __name__ == '__main__':
-    updater = Updater('5221341356:AAF5D4OKX3rEHv5M3KvyY6Sg9caipj0ej-k', use_context=True)
+    updater = Updater('5181629296:AAEO1swHrmsBotFGmItdz6JvKDSRbsWxMwY', use_context=True)
     dp = updater.dispatcher
     print("started")
     dp.add_handler(CommandHandler("start", start))
