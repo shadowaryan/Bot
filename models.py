@@ -21,7 +21,7 @@ class User(CustomBase):
     __tablename__ = 'user'
     id = Column(Integer, Sequence('user_id_seq'), primary_key=True)
     username = Column(String(60))
-    chat_id = Column(Integer) 
+    chat_id = Column(Integer) #123456789
     platform = Column(String(15))
 
     telegram_user = relationship('Telegram_User', back_populates='user')

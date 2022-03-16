@@ -1,12 +1,15 @@
-from turtle import title
 import discord
 from discord.ext import commands
+from discord.ext.commands import CheckFailure
 import os
 from dotenv import load_dotenv
 import requests
+from sqlalchemy import true
+import sys
 
 client = commands.Bot(command_prefix = '$')
-#ok
+sys.path.append(".")
+from models import *
 
 
 #login event
@@ -24,6 +27,7 @@ async def on_member_join(member):
 async def on_member_remove(member):
     print(f'{member} left the server')
 
+#server stats command
 @client.command()
 async def stats(message):
     # if message.author == client.user:
@@ -33,7 +37,7 @@ async def stats(message):
     name = str(message.guild.name)
     owner_name = str(message.guild.owner)
     server_id = str(message.guild.id)
-    no_of_channels = str(message.guild.channels)
+    #no_of_channels = str(message.guild.channels)
     member_count = str(message.guild.member_count)
 
     icon = str(message.guild.icon_url)
@@ -58,7 +62,8 @@ async def stats(message):
 
     # if message.content.startswith('$server_stats'):
     # await message.send(f' Server Stats:-\n no of member: {id.member_count}')
-  
+
+#nft stats command 
 @client.command()
 async def nft(message,*,slug):
     response = requests.get(f'https://api.opensea.io/collection/{slug}/stats').json()['stats']
@@ -76,9 +81,54 @@ async def nft(message,*,slug):
         embed.add_field(name=key, value=value ,inline=True)
     
     await message.send(embed=embed)
+
+
+#set channel for nft command   
+@client.command()
+@commands.has_permissions(administrator=True)
+async def set_channel(message,*,channel_name):
+
+    for channel in message.guild.channels:
+        if str(channel) == channel_name:
+            channel_id = channel.id
+
+
+    try:
+        if channel_name != client.get_channel(channel_id):
+            message_channel_name = client.get_channel(channel_id)
+            print("message send")
+            await message_channel_name.send("Hii")
+        else:
+            print("Got Error")
+    except UnboundLocalError:
+        await message.send(f"Channel Name - {channel_name}\nNot in a Server")
+
+
+#user validation
+@set_channel.error
+async def set_channel_error(ctx, error):
+    if isinstance(error, CheckFailure):
+        msg = "You're not an administrator {}".format(ctx.message.author.mention)  
+        await ctx.send(msg)
+
+    #to get channel id
+    # channel = discord.utils.get(message.guild.channels, name=channel_name)
+    # if channel.id == channel.id:
+    #     print("ok")
     
 
 
+
+    # condition = True
+    # for channel in message.guild.channels:
+    #     if str(channel) == channel_name:
+    #         await message.send(f"hello, your requested channel={channel_name}")
+    #         return condition
+            
+    #     # else:
+    #     #     await message.send("in")
+    # if condition == True:
+    #     print("hello")
 
 load_dotenv()
 client.run(os.getenv('TOKEN'))
