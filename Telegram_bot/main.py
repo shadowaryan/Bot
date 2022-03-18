@@ -35,10 +35,10 @@ def start(update, context):
 
     user_chat_id = update.effective_user.id
     user_chat_type = update.effective_chat.type
-    platform = User(username=update.effective_user.username,chat_id=user_chat_id,platform='Telegram')
+    platform = User(user_id=user_chat_id,platform='Telegram')
     user = Telegram_User(username=update.effective_user.username,chat_id=user_chat_id,chat_type=user_chat_type)
 
-    if not session.query(session.query(User).filter_by(chat_id=user_chat_id).exists()).scalar():
+    if not session.query(session.query(User).filter_by(user_id=user_chat_id).exists()).scalar():
 
         session.add(platform)
         session.commit()
@@ -71,7 +71,7 @@ def add_collection(update, context):
     if url != '':
         update.message.reply_text(f"NFT Collection Name - {slug}")
     
-        user = session.query(User).filter_by(username=update.effective_user.username).first()
+        user = session.query(User).filter_by(user_id=update.effective_user.id).first()
         collection_id = get_collection_id(slug)
         
         resp = requests.get(f'https://api.opensea.io/collection/{slug}/stats').json()['stats']

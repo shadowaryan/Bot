@@ -1,5 +1,6 @@
 from platform import platform
 from urllib import response
+from numpy import integer
 from sqlalchemy import INTEGER, Column, Integer, String, Sequence, ForeignKey, Float, false
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
@@ -20,8 +21,7 @@ class CustomBase(Base):
 class User(CustomBase):
     __tablename__ = 'user'
     id = Column(Integer, Sequence('user_id_seq'), primary_key=True)
-    username = Column(String(60))
-    chat_id = Column(Integer) #123456789
+    user_id = Column(String(100))
     platform = Column(String(15))
 
     telegram_user = relationship('Telegram_User', back_populates='user')
@@ -44,11 +44,15 @@ class Discord_User(CustomBase):
     __tablename__ = 'discord_user'
     id = Column(Integer, Sequence('discord_user_id_seq'), primary_key=True)
 
-    user_id = Column(Integer, ForeignKey('user.id'))
+    user__id = Column(Integer, ForeignKey('user.id'))
+    set_nft_channel_name = Column(String(64)) #channel name = set-nft
+    set_nft_channel_id = Column(Integer) #sales-nft = 953565311741857793
+    user_id = Column(Integer) #4654885348666
+    server_id = Column(Integer) #950674739133808690
     user = relationship('User', back_populates='discord_user')
     
     #username = Column(String(50)) #shadowaryan 
-    chat_id = Column(Integer) #123456789
+    #chat_id = Column(Integer) #123456789
     #chat_type = Column(String(50)) #private , group , channel
 
 
@@ -118,4 +122,3 @@ class History(CustomBase):
     market_cap = Column(Float(10,5),nullable=False)
     floor_price = Column(Float(10,5),nullable=False)
     #response_json = Column(JSON)
- 

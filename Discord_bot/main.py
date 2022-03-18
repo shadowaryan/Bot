@@ -4,12 +4,21 @@ from discord.ext.commands import CheckFailure
 import os
 from dotenv import load_dotenv
 import requests
-from sqlalchemy import true
+from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy import true ,create_engine
+from sqlalchemy.sql import exists
 import sys
 
 client = commands.Bot(command_prefix = '$')
 sys.path.append(".")
 from models import *
+
+engine = create_engine('postgresql+psycopg2://postgres:aoGY0J9U9o@hypemail-db-staging.c44vnyfhjrjn.us-east-1.rds.amazonaws.com:5432/nft-bot', echo=False)
+
+Session = sessionmaker(bind=engine)
+Session.configure(bind=engine)
+session = Session()
+
 
 
 #login event
@@ -30,6 +39,16 @@ async def on_member_remove(member):
 #server stats command
 @client.command()
 async def stats(message):
+
+    author = message.message.author
+    id = str(author.id)
+    platform = User(user_id=id,platform='Discord')
+    if not session.query(session.query(User).filter_by(user_id=id).exists()).scalar():
+        session.add(platform)
+        session.commit()
+        print('User added')
+
+
     # if message.author == client.user:
     #     return
 
@@ -66,6 +85,23 @@ async def stats(message):
 #nft stats command 
 @client.command()
 async def nft(message,*,slug):
+
+    author = message.message.author
+    #await message.send('Your ID is: ' + str(author.id))
+    # user_id(str(author.id))
+    # id = 940835714524909609
+    # await message.send(client.fetch_user(str(id)))
+    # print(client.fetch_user(id))
+
+
+    platform = User(user_id=str(author.id),platform='Discord')
+    if not session.query(session.query(User).filter_by(user_id=str(author.id)).exists()).scalar():
+        session.add(platform)
+        session.commit()
+        print('User added')
+
+
+
     response = requests.get(f'https://api.opensea.io/collection/{slug}/stats').json()['stats']
     
     icon = requests.get(f'https://api.opensea.io/collection/{slug}').json()['collection']['primary_asset_contracts'][0]['image_url']
@@ -82,26 +118,50 @@ async def nft(message,*,slug):
     
     await message.send(embed=embed)
 
+#thisone  
+def data(message):
+    author = message.message.author
+    server_id = str(message.guild.id)
+    data = Discord_User(set_nft_channel_name=channel_name,set_nft_channel_id=channel_id,user_id=str(author.id),server_id=server_id)
+    if not session.query(session.query(Discord_User).filter_by(user_id=str(author.id)).exists()).scalar():
+        session.add(data)
+        session.commit()
+        print('User data added')
+
+
 
 #set channel for nft command   
 @client.command()
 @commands.has_permissions(administrator=True)
 async def set_channel(message,*,channel_name):
 
+
+    author = message.message.author
+    user = User(user_id=str(author.id),platform='Discord')
+    if not session.query(session.query(User).filter_by(user_id=str(author.id)).exists()).scalar():
+        session.add(user)
+        session.commit()
+        print('User added')
+        
+
     for channel in message.guild.channels:
         if str(channel) == channel_name:
             channel_id = channel.id
 
-
+    
+    
     try:
         if channel_name != client.get_channel(channel_id):
             message_channel_name = client.get_channel(channel_id)
             print("message send")
             await message_channel_name.send("Hii")
+            #here
+           
         else:
             print("Got Error")
     except UnboundLocalError:
         await message.send(f"Channel Name - {channel_name}\nNot in a Server")
+
 
 
 #user validation
