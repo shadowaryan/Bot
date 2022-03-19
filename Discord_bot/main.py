@@ -119,9 +119,9 @@ async def nft(message,*,slug):
     await message.send(embed=embed)
 
 #thisone  
-def data(message):
+def data(message,server_id,channel_id,channel_name):
     author = message.message.author
-    server_id = str(message.guild.id)
+    
     data = Discord_User(set_nft_channel_name=channel_name,set_nft_channel_id=channel_id,user_id=str(author.id),server_id=server_id)
     if not session.query(session.query(Discord_User).filter_by(user_id=str(author.id)).exists()).scalar():
         session.add(data)
@@ -135,7 +135,7 @@ def data(message):
 @commands.has_permissions(administrator=True)
 async def set_channel(message,*,channel_name):
 
-
+    server_id = str(message.guild.id)
     author = message.message.author
     user = User(user_id=str(author.id),platform='Discord')
     if not session.query(session.query(User).filter_by(user_id=str(author.id)).exists()).scalar():
@@ -153,7 +153,12 @@ async def set_channel(message,*,channel_name):
     try:
         if channel_name != client.get_channel(channel_id):
             message_channel_name = client.get_channel(channel_id)
+            print(message_channel_name)
+            print(channel_id)
+            print(channel_name)
+            print(message)
             print("message send")
+            data(message,server_id,channel_id,channel_name)
             await message_channel_name.send("Hii")
             #here
            

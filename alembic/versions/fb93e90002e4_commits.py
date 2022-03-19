@@ -1,8 +1,8 @@
 """commits
 
-Revision ID: df19c8365150
+Revision ID: fb93e90002e4
 Revises: 
-Create Date: 2022-03-17 16:38:52.733110
+Create Date: 2022-03-19 11:13:06.738110
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'df19c8365150'
+revision = 'fb93e90002e4'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -31,7 +31,7 @@ def upgrade():
     sa.Column('created_at', sa.TIMESTAMP(), nullable=False),
     sa.Column('updated_at', sa.TIMESTAMP(), nullable=False),
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('user_id', sa.String(length=100), nullable=True),
+    sa.Column('user_id', sa.Integer(), nullable=True),
     sa.Column('platform', sa.String(length=15), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
@@ -42,7 +42,7 @@ def upgrade():
     sa.Column('user__id', sa.Integer(), nullable=True),
     sa.Column('set_nft_channel_name', sa.String(length=64), nullable=True),
     sa.Column('set_nft_channel_id', sa.Integer(), nullable=True),
-    sa.Column('user_id', sa.Integer(), nullable=True),
+    sa.Column('user_id', sa.String(length=100), nullable=True),
     sa.Column('server_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['user__id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
@@ -107,12 +107,11 @@ def upgrade():
     op.create_table('user_collection',
     sa.Column('created_at', sa.TIMESTAMP(), nullable=False),
     sa.Column('updated_at', sa.TIMESTAMP(), nullable=False),
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('user_id', sa.Integer(), nullable=True),
-    sa.Column('collection_id', sa.Integer(), nullable=True),
+    sa.Column('user_id', sa.Integer(), nullable=False),
+    sa.Column('collection_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['collection_id'], ['collection.id'], ),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('user_id', 'collection_id')
     )
     # ### end Alembic commands ###
 

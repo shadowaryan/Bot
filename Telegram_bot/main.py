@@ -33,7 +33,7 @@ def start(update, context):
 
     update.message.reply_text("""Hello,\n Welcome to NFT Collection Bot \nFor more - /help""")
 
-    user_chat_id = update.effective_user.id
+    user_chat_id = str(update.effective_user.id)
     user_chat_type = update.effective_chat.type
     platform = User(user_id=user_chat_id,platform='Telegram')
     user = Telegram_User(username=update.effective_user.username,chat_id=user_chat_id,chat_type=user_chat_type)
@@ -78,13 +78,15 @@ def add_collection(update, context):
 
         # if not session.query(session.query(Collection, Telegram_User).filter(User_Collection.collection_id==collection_id, User_Collection.user_id==user.id).exists()).scalar():
         if session.query(User_Collection).filter(User_Collection.collection_id==collection_id, User_Collection.user_id==user.id).count() == 0:
-            collection = session.query(Collection).filter_by(id=collection_id).first()
-            user.collections.append(collection)
+            user.collections.append(session.query(Collection).filter_by(id=collection_id).first())
             print('Collection added')
             update.message.reply_text(f"NFT Collection Name - {slug}\nIs added to our Database")
-            session.commit()
+            
         else:
             update.message.reply_text("Error - Invaild Text or collection is already there, please use /start and then /help to know commands")
+        
+        session.commit()
+    
     else:
         update.message.reply_text("Error - Invaild Text, Use /help to know more")
 
