@@ -1,8 +1,8 @@
-"""Setting up tables
+"""commits
 
-Revision ID: 5fb309e1b756
+Revision ID: 24ab108cccf1
 Revises: 
-Create Date: 2022-03-19 14:48:01.855774
+Create Date: 2022-03-19 21:24:15.123265
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '5fb309e1b756'
+revision = '24ab108cccf1'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -22,7 +22,7 @@ def upgrade():
     sa.Column('created_at', sa.TIMESTAMP(), nullable=False),
     sa.Column('updated_at', sa.TIMESTAMP(), nullable=False),
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('slug', sa.String(length=512), nullable=True),
+    sa.Column('slug', sa.String(length=128), nullable=True),
     sa.Column('floor_price', sa.Float(precision=10, asdecimal=5), nullable=True),
     sa.Column('count', sa.Float(precision=10, asdecimal=5), nullable=False),
     sa.PrimaryKeyConstraint('id')
@@ -31,8 +31,8 @@ def upgrade():
     sa.Column('created_at', sa.TIMESTAMP(), nullable=False),
     sa.Column('updated_at', sa.TIMESTAMP(), nullable=False),
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('user_id', sa.String(length=512), nullable=False),
-    sa.Column('platform', sa.String(length=15), nullable=True),
+    sa.Column('user_id', sa.String(length=128), nullable=False),
+    sa.Column('platform', sa.String(length=32), nullable=True),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('user_id')
     )
@@ -40,12 +40,11 @@ def upgrade():
     sa.Column('created_at', sa.TIMESTAMP(), nullable=False),
     sa.Column('updated_at', sa.TIMESTAMP(), nullable=False),
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('user__id', sa.Integer(), nullable=True),
+    sa.Column('user_id', sa.Integer(), nullable=True),
     sa.Column('set_nft_channel_name', sa.String(length=64), nullable=True),
-    sa.Column('set_nft_channel_id', sa.String(length=512), nullable=True),
-    sa.Column('user_id', sa.String(length=100), nullable=True),
-    sa.Column('server_id', sa.String(length=512), nullable=True),
-    sa.ForeignKeyConstraint(['user__id'], ['user.id'], ),
+    sa.Column('set_nft_channel_id', sa.String(length=128), nullable=True),
+    sa.Column('server_id', sa.String(length=128), nullable=True),
+    sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('history',
@@ -82,9 +81,9 @@ def upgrade():
     sa.Column('updated_at', sa.TIMESTAMP(), nullable=False),
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=True),
-    sa.Column('username', sa.String(length=50), nullable=True),
+    sa.Column('username', sa.String(length=128), nullable=True),
     sa.Column('chat_id', sa.Integer(), nullable=True),
-    sa.Column('chat_type', sa.String(length=50), nullable=True),
+    sa.Column('chat_type', sa.String(length=64), nullable=True),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
@@ -94,13 +93,13 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=True),
     sa.Column('collection_id', sa.Integer(), nullable=True),
-    sa.Column('seller_address', sa.String(length=256), nullable=True),
-    sa.Column('buyer_address', sa.String(length=256), nullable=True),
-    sa.Column('marketplace_address', sa.String(length=256), nullable=True),
+    sa.Column('seller_address', sa.String(length=512), nullable=True),
+    sa.Column('buyer_address', sa.String(length=512), nullable=True),
+    sa.Column('marketplace_address', sa.String(length=512), nullable=True),
     sa.Column('price', sa.Float(precision=10, asdecimal=5), nullable=True),
-    sa.Column('block_timestamp', sa.String(length=256), nullable=True),
-    sa.Column('block_number', sa.String(length=256), nullable=True),
-    sa.Column('block_hash', sa.String(length=256), nullable=True),
+    sa.Column('block_timestamp', sa.String(length=512), nullable=True),
+    sa.Column('block_number', sa.String(length=512), nullable=True),
+    sa.Column('block_hash', sa.String(length=512), nullable=True),
     sa.ForeignKeyConstraint(['collection_id'], ['collection.id'], ),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')

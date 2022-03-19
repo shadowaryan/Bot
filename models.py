@@ -21,8 +21,8 @@ class CustomBase(Base):
 class User(CustomBase):
     __tablename__ = 'user'
     id = Column(Integer, Sequence('user_id_seq'), primary_key=True)
-    user_id = Column(String(512), unique=True, nullable=False)
-    platform = Column(String(15))
+    user_id = Column(String(128), unique=True, nullable=False)
+    platform = Column(String(32))
 
     telegram_user = relationship('Telegram_User', back_populates='user')
     discord_user = relationship('Discord_User', back_populates='user')
@@ -36,19 +36,18 @@ class Telegram_User(CustomBase):
     user_id = Column(Integer, ForeignKey('user.id'))
     user = relationship('User', back_populates='telegram_user')
 
-    username = Column(String(50)) #shadowaryan 
+    username = Column(String(128)) #shadowaryan 
     chat_id = Column(Integer) #123456789
-    chat_type = Column(String(50)) #private , group , channel
+    chat_type = Column(String(64)) #private , group , channel
     
 class Discord_User(CustomBase):
     __tablename__ = 'discord_user'
     id = Column(Integer, Sequence('discord_user_id_seq'), primary_key=True)
 
-    user__id = Column(Integer, ForeignKey('user.id'))
+    user_id = Column(Integer, ForeignKey('user.id')) #4654885348666
     set_nft_channel_name = Column(String(64)) #channel name = set-nft
-    set_nft_channel_id = Column(String(512)) #sales-nft = 953565311741857793
-    user_id = Column(String(100)) #4654885348666
-    server_id = Column(String(512)) #950674739133808690
+    set_nft_channel_id = Column(String(128)) #sales-nft = 953565311741857793
+    server_id = Column(String(128)) #950674739133808690
     user = relationship('User', back_populates='discord_user')
     
     #username = Column(String(50)) #shadowaryan 
@@ -65,7 +64,7 @@ class User_Collection(CustomBase):
 class Collection(CustomBase):
     __tablename__ = 'collection'
     id = Column(Integer, Sequence('collection_id_seq'), primary_key=True)
-    slug = Column(String(512))
+    slug = Column(String(128))
     floor_price = Column(Float(10,5))
     count = Column(Float(10,5),nullable=False)
 
@@ -83,13 +82,13 @@ class Transaction(CustomBase):
     collection_id = Column(Integer, ForeignKey('collection.id'))
     collection = relationship('Collection', back_populates='transaction')
 
-    seller_address = Column(String(256))
-    buyer_address = Column(String(256))
-    marketplace_address = Column(String(256))
+    seller_address = Column(String(512))
+    buyer_address = Column(String(512))
+    marketplace_address = Column(String(512))
     price = Column(Float(10,5))
-    block_timestamp = Column(String(256))
-    block_number = Column(String(256))
-    block_hash = Column(String(256))
+    block_timestamp = Column(String(512))
+    block_number = Column(String(512))
+    block_hash = Column(String(512))
 
 
 class History(CustomBase):

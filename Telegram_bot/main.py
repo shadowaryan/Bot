@@ -12,10 +12,7 @@ import json
 sys.path.append(".")
 from models import *
 
-from Telegram_bot.utils import get_collection_id
-
-
-#engine = create_engine('postgresql://spqqojmysvclhl:35e13032f8326f8b7908e52a75e65215a62437d5c0c618aaee8a14392405e188@ec2-52-204-14-80.compute-1.amazonaws.com:5432/d7jch8clhgaktb', echo=False)
+from utils import get_collection_id
 
 engine = create_engine('postgresql+psycopg2://postgres:aoGY0J9U9o@hypemail-db-staging.c44vnyfhjrjn.us-east-1.rds.amazonaws.com:5432/nft-bot', echo=False)
 
@@ -25,7 +22,7 @@ session = Session()
 
 
 
-TOKEN = '5181629296:AAEO1swHrmsBotFGmItdz6JvKDSRbsWxMwY'
+TOKEN = '5221341356:AAF5D4OKX3rEHv5M3KvyY6Sg9caipj0ej-k'
 
 
 #bot start command    
@@ -33,21 +30,28 @@ def start(update, context):
 
     update.message.reply_text("""Hello,\n Welcome to NFT Collection Bot \nFor more - /help""")
 
-    user_chat_id = str(update.effective_user.id)
+    user_chat_id = update.effective_user.id
     user_chat_type = update.effective_chat.type
-    platform = User(user_id=user_chat_id,platform='Telegram')
-    user = Telegram_User(username=update.effective_user.username,chat_id=user_chat_id,chat_type=user_chat_type)
+    
+    
 
-    if not session.query(session.query(User).filter_by(user_id=user_chat_id).exists()).scalar():
-
-        session.add(platform)
+    if not session.query(session.query(User).filter_by(user_id=str(user_chat_id)).exists()).scalar():
+        user = User(user_id=str(user_chat_id),platform='Telegram')
+        session.add(user)
         session.commit()
         print('User added')
-        if not session.query(session.query(Telegram_User).filter_by(chat_id=user_chat_id).exists()).scalar():
-            session.add(user)
-            session.commit()
-            print('User_ added')
-        
+    else:
+        print('user exists')
+
+    if not session.query(session.query(Telegram_User).filter_by(chat_id=user_chat_id).exists()).scalar():
+        user = session.query(User).filter_by(user_id=str(update.effective_user.id)).first()
+        telegram_user = Telegram_User(user_id=user.id,username=update.effective_user.username,chat_id=user_chat_id,chat_type=user_chat_type)
+        session.add(telegram_user)
+        session.commit()
+        print('User data added')
+    else:
+        print('user data exists')
+    
 
     
     
@@ -71,18 +75,16 @@ def add_collection(update, context):
     if url != '':
         update.message.reply_text(f"NFT Collection Name - {slug}")
     
-        user = session.query(User).filter_by(user_id=update.effective_user.id).first()
+        user = session.query(User).filter_by(user_id=str(update.effective_user.id)).first()
         collection_id = get_collection_id(slug)
-        
-        resp = requests.get(f'https://api.opensea.io/collection/{slug}/stats').json()['stats']
 
-        # if not session.query(session.query(Collection, Telegram_User).filter(User_Collection.collection_id==collection_id, User_Collection.user_id==user.id).exists()).scalar():
         if session.query(User_Collection).filter(User_Collection.collection_id==collection_id, User_Collection.user_id==user.id).count() == 0:
             user.collections.append(session.query(Collection).filter_by(id=collection_id).first())
             print('Collection added')
             update.message.reply_text(f"NFT Collection Name - {slug}\nIs added to our Database")
             
         else:
+            print('collection exists')
             update.message.reply_text("Error - Invaild Text or collection is already there, please use /start and then /help to know commands")
         
         session.commit()
@@ -94,8 +96,6 @@ def add_collection(update, context):
 #message handling command
 def handle_message(update,context):
     message = update.message.text
-    print(update.effective_user.id)
-    print(update.effective_user.username)
     if message in ("Hi","Hii","hii","hello","Hello"):
         update.message.reply_text(f"{message}, there")
     else:
@@ -103,7 +103,7 @@ def handle_message(update,context):
 
 
 if __name__ == '__main__':
-    updater = Updater('5181629296:AAEO1swHrmsBotFGmItdz6JvKDSRbsWxMwY', use_context=True)
+    updater = Updater(TOKEN, use_context=True)
     dp = updater.dispatcher
     print("started")
     dp.add_handler(CommandHandler("start", start))
