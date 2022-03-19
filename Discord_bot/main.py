@@ -13,7 +13,7 @@ client = commands.Bot(command_prefix = '$')
 sys.path.append(".")
 from models import *
 
-engine = create_engine('postgresql+psycopg2://postgres:aoGY0J9U9o@hypemail-db-staging.c44vnyfhjrjn.us-east-1.rds.amazonaws.com:5432/nft-bot', echo=False)
+engine = create_engine('postgresql+psycopg2://postgres:aoGY0J9U9o@hypemail-db-staging.c44vnyfhjrjn.us-east-1.rds.amazonaws.com:5432/nft-bot', echo=True)
 
 Session = sessionmaker(bind=engine)
 Session.configure(bind=engine)
@@ -119,11 +119,15 @@ async def nft(message,*,slug):
     await message.send(embed=embed)
 
 #thisone  
-def data(message,server_id,channel_id,channel_name):
+async def data(message,server_id,channel_id,channel_name):
+    print('Inside data function')
     author = message.message.author
     
     data = Discord_User(set_nft_channel_name=channel_name,set_nft_channel_id=channel_id,user_id=str(author.id),server_id=server_id)
-    if not session.query(session.query(Discord_User).filter_by(user_id=str(author.id)).exists()).scalar():
+    print(data)
+    print(session.query(Discord_User).filter_by(user_id=str(author.id)).all() == [])
+    if session.query(Discord_User).filter_by(user_id=str(author.id)).all() == []:
+        print('In here')
         session.add(data)
         session.commit()
         print('User data added')
@@ -134,11 +138,13 @@ def data(message,server_id,channel_id,channel_name):
 @client.command()
 @commands.has_permissions(administrator=True)
 async def set_channel(message,*,channel_name):
-
+    print('SET CHANNEL')
     server_id = str(message.guild.id)
     author = message.message.author
-    user = User(user_id=str(author.id),platform='Discord')
-    if not session.query(session.query(User).filter_by(user_id=str(author.id)).exists()).scalar():
+    print(author.id)
+    if session.query(User).filter_by(user_id=str(author.id)).all() == []:
+        print('ADDING USER')
+        user = User(user_id=str(author.id),platform='Discord')
         session.add(user)
         session.commit()
         print('User added')
@@ -158,7 +164,7 @@ async def set_channel(message,*,channel_name):
             print(channel_name)
             print(message)
             print("message send")
-            data(message,server_id,channel_id,channel_name)
+            await data(message,server_id,channel_id,channel_name)
             await message_channel_name.send("Hii")
             #here
            

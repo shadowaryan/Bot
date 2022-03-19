@@ -21,7 +21,7 @@ class CustomBase(Base):
 class User(CustomBase):
     __tablename__ = 'user'
     id = Column(Integer, Sequence('user_id_seq'), primary_key=True)
-    user_id = Column(Integer)
+    user_id = Column(String(512), unique=True, nullable=False)
     platform = Column(String(15))
 
     telegram_user = relationship('Telegram_User', back_populates='user')
@@ -46,9 +46,9 @@ class Discord_User(CustomBase):
 
     user__id = Column(Integer, ForeignKey('user.id'))
     set_nft_channel_name = Column(String(64)) #channel name = set-nft
-    set_nft_channel_id = Column(Integer) #sales-nft = 953565311741857793
+    set_nft_channel_id = Column(String(512)) #sales-nft = 953565311741857793
     user_id = Column(String(100)) #4654885348666
-    server_id = Column(Integer) #950674739133808690
+    server_id = Column(String(512)) #950674739133808690
     user = relationship('User', back_populates='discord_user')
     
     #username = Column(String(50)) #shadowaryan 

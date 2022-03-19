@@ -1,8 +1,8 @@
-"""commits
+"""Setting up tables
 
-Revision ID: fb93e90002e4
+Revision ID: 5fb309e1b756
 Revises: 
-Create Date: 2022-03-19 11:13:06.738110
+Create Date: 2022-03-19 14:48:01.855774
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'fb93e90002e4'
+revision = '5fb309e1b756'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -31,9 +31,10 @@ def upgrade():
     sa.Column('created_at', sa.TIMESTAMP(), nullable=False),
     sa.Column('updated_at', sa.TIMESTAMP(), nullable=False),
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('user_id', sa.Integer(), nullable=True),
+    sa.Column('user_id', sa.String(length=512), nullable=False),
     sa.Column('platform', sa.String(length=15), nullable=True),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('user_id')
     )
     op.create_table('discord_user',
     sa.Column('created_at', sa.TIMESTAMP(), nullable=False),
@@ -41,9 +42,9 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user__id', sa.Integer(), nullable=True),
     sa.Column('set_nft_channel_name', sa.String(length=64), nullable=True),
-    sa.Column('set_nft_channel_id', sa.Integer(), nullable=True),
+    sa.Column('set_nft_channel_id', sa.String(length=512), nullable=True),
     sa.Column('user_id', sa.String(length=100), nullable=True),
-    sa.Column('server_id', sa.Integer(), nullable=True),
+    sa.Column('server_id', sa.String(length=512), nullable=True),
     sa.ForeignKeyConstraint(['user__id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
