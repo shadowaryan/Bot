@@ -80,11 +80,9 @@ def add_collection(update, context):
 
         if session.query(User_Collection).filter(User_Collection.collection_id==collection_id, User_Collection.user_id==user.id).count() == 0:
             user.collections.append(session.query(Collection).filter_by(id=collection_id).first())
-            print('Collection added')
-            update.message.reply_text(f"NFT Collection Name - {slug}\nIs added to our Database")
-            
+            print('User_Collection added')           
         else:
-            print('collection exists')
+            print('user_collection exists')
             update.message.reply_text("Error - Invaild Text or collection is already there, please use /start and then /help to know commands")
         
         session.commit()

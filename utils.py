@@ -16,6 +16,7 @@ session = Session()
 def get_collection_id(slug):
     collection = session.query(Collection).filter_by(slug=slug).first()
     if collection:
+        print('collection exists')
         return collection.id
     else:
         resp = requests.get(f'https://api.opensea.io/collection/{slug}/stats').json()['stats']
@@ -27,5 +28,6 @@ def get_collection_id(slug):
         history =  History(**resp,collection_id=collection.id)
         session.add(history)
         session.commit()
+        print('collection added')
         return collection.id
 

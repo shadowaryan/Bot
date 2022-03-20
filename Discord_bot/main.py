@@ -12,6 +12,7 @@ import sys
 client = commands.Bot(command_prefix = '$')
 sys.path.append(".")
 from models import *
+from utils import get_collection_id
 
 engine = create_engine('postgresql+psycopg2://postgres:aoGY0J9U9o@hypemail-db-staging.c44vnyfhjrjn.us-east-1.rds.amazonaws.com:5432/nft-bot', echo=False)
 
@@ -75,7 +76,7 @@ async def stats(message):
 
 #nft stats command 
 @client.command()
-async def nft(message,*,slug):
+async def nft(message,*,slug_name):
 
     author = message.message.author
 
@@ -89,21 +90,44 @@ async def nft(message,*,slug):
         print('user exists')
 
 
-    response = requests.get(f'https://api.opensea.io/collection/{slug}/stats').json()['stats']
     
-    icon = requests.get(f'https://api.opensea.io/collection/{slug}').json()['collection']['primary_asset_contracts'][0]['image_url']
-    
-    embed = discord.Embed(
-        title = f"NFT = {slug}",
-        description = "NFT Stats",
-        color = discord.Color.dark_red()
-    )
-    embed.set_thumbnail(url=icon)
+    slug = slug_name.split('/')[-1]
 
-    for key ,value in response.items():
-        embed.add_field(name=key, value=value ,inline=True)
+    if slug != '':
+        
+        response = requests.get(f'https://api.opensea.io/collection/{slug}/stats').json()['stats']
+        
+        icon = requests.get(f'https://api.opensea.io/collection/{slug}').json()['collection']['image_url']
+        
+        embed = discord.Embed(
+            title = f"NFT = {slug}",
+            description = "NFT Stats",
+            color = discord.Color.dark_red()
+        )
+        embed.set_thumbnail(url=icon)
+
+        for key ,value in response.items():
+            embed.add_field(name=key, value=value ,inline=True)
+        
+        await message.send(embed=embed)
+
+
+        #adding nft data to database
+        await message.send(f"NFT Collection Name - {slug}")
     
-    await message.send(embed=embed)
+        user = session.query(User).filter_by(user_id=str(author.id)).first()
+        collection_id = get_collection_id(slug)
+
+        if session.query(User_Collection).filter(User_Collection.collection_id==collection_id, User_Collection.user_id==user.id).count() == 0:
+            user.collections.append(session.query(Collection).filter_by(id=collection_id).first())
+            print('User_Collection added')          
+        else:
+            print('user_collection exists')
+            await message.send("Collection is already in our Database.")
+        
+        session.commit()
+    else:
+        await message.send("invalid input")
 
 
 
