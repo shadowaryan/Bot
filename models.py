@@ -26,7 +26,7 @@ class User(CustomBase):
 
     telegram_user = relationship('Telegram_User', back_populates='user')
     discord_user = relationship('Discord_User', back_populates='user')
-    transaction = relationship('Transaction', back_populates='user')
+    contract = relationship('Contract', back_populates='user')
     collections = relationship('Collection', secondary = 'user_collection', back_populates='users')
 
 class Telegram_User(CustomBase):
@@ -69,26 +69,22 @@ class Collection(CustomBase):
     count = Column(Float(10,5),nullable=False)
 
     users = relationship('User', secondary = 'user_collection', back_populates='collections')
-    transaction = relationship('Transaction', back_populates='collection')
+    contract = relationship('Contract', back_populates='collection')
     history = relationship('History', back_populates='collection')
 
 
-class Transaction(CustomBase):
-    __tablename__ = 'transaction'
-    id = Column(Integer, Sequence('transaction_id_seq'), primary_key=True)
+class Contract(CustomBase):
+    __tablename__ = 'contract'
+    id = Column(Integer, Sequence('contract_id_seq'), primary_key=True)
 
     user_id = Column(Integer, ForeignKey('user.id'))
-    user = relationship('User', back_populates='transaction')
+    user = relationship('User', back_populates='contract')
     collection_id = Column(Integer, ForeignKey('collection.id'))
-    collection = relationship('Collection', back_populates='transaction')
+    collection = relationship('Collection', back_populates='contract')
 
-    seller_address = Column(String(512))
-    buyer_address = Column(String(512))
-    marketplace_address = Column(String(512))
-    price = Column(Float(10,5))
-    block_timestamp = Column(String(512))
-    block_number = Column(String(512))
-    block_hash = Column(String(512))
+    contract_address = Column(String(512), unique=True, nullable=False)
+    contract_type = Column(String(512)) # non-fungiable,semi-fungiable
+    latest_transaction_hash = Column(String(512))
 
 
 class History(CustomBase):
