@@ -42,9 +42,10 @@ async def on_member_remove(member):
 async def stats(message):
 
     author = message.message.author
+    user = User(user_id=str(author.id),platform='Discord')
+
     if session.query(User).filter_by(user_id=str(author.id)).all() == []:
         print('ADDING USER')
-        user = User(user_id=str(author.id),platform='Discord')
         session.add(user)
         session.commit()
         print('User added')
@@ -146,6 +147,85 @@ async def data(server_id,channel_id,channel_name,author):
         print('user data exists')
 
 
+#transaction
+@client.command()
+async def set_nft(message,*,slug_name):
+    author = message.message.author
+    
+    if session.query(exists().where(User.user_id == str(author.id))).scalar() == True:
+        #checking and setting collection data
+
+        user = session.query(User).filter_by(user_id=str(author.id)).first()
+        collection_id = get_collection_id(slug_name)
+
+        if session.query(User_Collection).filter(User_Collection.collection_id==collection_id, User_Collection.user_id==user.id).count() == 0:
+            user.collections.append(session.query(Collection).filter_by(id=collection_id).first())
+            print('User_Collection added. sending transaction ......')          
+        else:
+            print('user_collection exists')
+            await message.send("Collection is already in our Database. sending transaction...")
+        
+        session.commit()
+            
+            
+        #checking channel
+        if session.query(exists().where(Discord_User.set_nft_channel_id == str(message.channel.id))).scalar() == True:
+            channel_id = message.channel.id
+            message_channel_name = client.get_channel(channel_id)
+        
+
+            response = requests.get(f'https://api.opensea.io/collection/{slug_name}').json()['collection']['primary_asset_contracts']
+            print(len(response))
+            for x in response:
+                if session.query(Contract).filter(Contract.contract_type == str(x['address']),Contract.contract_type == str(x["asset_contract_type"])).count() == 0:
+                    
+                    address = x['address']
+                    print('nft address -'+address)
+                    
+                    if address != None:
+                        headers = {'X-API-Key': 'xha1n5zJ86je4uT9ryM751OMv24JPr08xpsGKachXQ8GyazgRI3SRwkfs35Tzo7h'}
+                        
+                        transaction_resp = requests.get(f'https://deep-index.moralis.io/api/v2/nft/{address}/trades?chain=eth&from_date=2022-03-15&marketplace=opensea',headers=headers).json()['total']
+                        total = transaction_resp-1
+                        
+                        print(total)
+                        
+                        transaction_response = requests.get(f'https://deep-index.moralis.io/api/v2/nft/0x8a90cab2b38dba80c64b7734e58ee1db38b8992e/trades?chain=eth&from_date=2022-03-15&marketplace=opensea&offset={total}',headers=headers).json()['result'][0]
+                        transaction_hash = transaction_response['transaction_hash']
+                        
+                        print(transaction_hash)
+                        
+                        token_ids = transaction_response['token_ids']
+                        
+                        print(token_ids)
+                        collection = session.query(Collection).filter_by(slug=slug_name).first()
+                        contract = Contract(user_id=user.id,collection_id=collection.id,contract_address=str(x['address']),contract_type=str(x["asset_contract_type"]),latest_transaction_hash=str(transaction_hash))
+                        session.add(contract)
+                        session.commit()
+
+                        icon = requests.get(f'https://api.opensea.io/collection/{slug_name}').json()['collection']['image_url']
+                        
+                        embed = discord.Embed(
+                            title = f"NFT = {slug_name}",
+                            description = "NFT Transaction",
+                            color = discord.Color.dark_gold()
+                        )
+                        embed.set_thumbnail(url=icon)
+
+                        for key ,value in transaction_response.items():
+                            embed.add_field(name=key, value=value ,inline=True)
+                        
+                        await message_channel_name.send(embed=embed)
+                else:
+                    print('error')        
+        else:
+            await message.send("channel not exists")                
+    else:
+        await message.send("User not exists. Use $set_channel command to set user and then set the nft")
+        
+
+
+
 #set channel for nft command   
 @client.command()
 @commands.has_permissions(administrator=True)
@@ -163,11 +243,14 @@ async def set_channel(message,*,channel_name):
 
             server_id = str(message.guild.id)
             author = message.message.author
-            
-            if session.query(User).filter_by(user_id=str(author.id)).all() == []:
+            user = User(user_id=str(author.id),platform='Discord')
+            print('ok')
+            if session.query(exists().where(User.user_id == str(author.id))).scalar() == False:
                 print('ADDING USER')
-                user = User(user_id=str(author.id),platform='Discord')
+                
+                print('1')
                 session.add(user)
+                print('2')
                 session.commit()
                 print('User added')
             else:
@@ -175,12 +258,13 @@ async def set_channel(message,*,channel_name):
 
             await data(server_id,channel_id,channel_name,author)
 
-            await message_channel_name.send("Hii")
+            await message_channel_name.send(f"Hello Admin , Verification is completed now to set nft alerts to channel - {channel_name}\nType :- $set_nft \"nft name\"")
             print("message send")           
         else:
             print("Got Error")
     except UnboundLocalError:
         await message.send(f"Channel Name - {channel_name}\nNot in a Server")
+
 
 
 
@@ -190,6 +274,8 @@ async def set_channel_error(ctx, error):
     if isinstance(error, CheckFailure):
         msg = "You're not an administrator {}".format(ctx.message.author.mention)  
         await ctx.send(msg)
+
+
 
 
 load_dotenv()
