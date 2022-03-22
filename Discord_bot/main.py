@@ -175,7 +175,7 @@ async def set_nft(message,*,slug_name):
         
 
             response = requests.get(f'https://api.opensea.io/collection/{slug_name}').json()['collection']['primary_asset_contracts']
-            print(len(response))
+            # print(len(response))
             for x in response:
                 if session.query(Contract).filter(Contract.contract_type == str(x['address']),Contract.contract_type == str(x["asset_contract_type"])).count() == 0:
                     
@@ -186,18 +186,19 @@ async def set_nft(message,*,slug_name):
                         headers = {'X-API-Key': 'xha1n5zJ86je4uT9ryM751OMv24JPr08xpsGKachXQ8GyazgRI3SRwkfs35Tzo7h'}
                         
                         transaction_resp = requests.get(f'https://deep-index.moralis.io/api/v2/nft/{address}/trades?chain=eth&from_date=2022-03-15&marketplace=opensea',headers=headers).json()['total']
-                        total = transaction_resp-1
+                        total = str(transaction_resp-1)
                         
                         print(total)
                         
-                        transaction_response = requests.get(f'https://deep-index.moralis.io/api/v2/nft/0x8a90cab2b38dba80c64b7734e58ee1db38b8992e/trades?chain=eth&from_date=2022-03-15&marketplace=opensea&offset={total}',headers=headers).json()['result'][0]
+                        transaction_response = requests.get(f'https://deep-index.moralis.io/api/v2/nft/{address}/trades?chain=eth&from_date=2022-03-15&marketplace=opensea&offset={total}',headers=headers).json()['result'][0]
+                        print(transaction_response)
                         transaction_hash = transaction_response['transaction_hash']
                         
                         print(transaction_hash)
                         
-                        token_ids = transaction_response['token_ids']
+                        # token_ids = transaction_response['token_ids']
                         
-                        print(token_ids)
+                        # print(token_ids)
                         collection = session.query(Collection).filter_by(slug=slug_name).first()
                         contract = Contract(user_id=user.id,collection_id=collection.id,contract_address=str(x['address']),contract_type=str(x["asset_contract_type"]),latest_transaction_hash=str(transaction_hash))
                         session.add(contract)
