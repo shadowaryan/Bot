@@ -1,8 +1,8 @@
 """commits
 
-Revision ID: 403c29df5702
+Revision ID: 00a786fd8661
 Revises: 
-Create Date: 2022-03-21 21:56:17.151071
+Create Date: 2022-04-04 20:27:05.774959
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '403c29df5702'
+revision = '00a786fd8661'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -42,9 +42,11 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=True),
     sa.Column('collection_id', sa.Integer(), nullable=True),
-    sa.Column('contract_address', sa.String(length=512), nullable=True),
+    sa.Column('channel_id', sa.String(length=128), nullable=True),
+    sa.Column('contract_address', sa.String(length=512), nullable=False),
     sa.Column('contract_type', sa.String(length=512), nullable=True),
     sa.Column('latest_transaction_hash', sa.String(length=512), nullable=True),
+    sa.Column('total_transaction', sa.String(length=512), nullable=True),
     sa.ForeignKeyConstraint(['collection_id'], ['collection.id'], ),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')

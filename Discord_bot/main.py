@@ -1,3 +1,4 @@
+from turtle import title
 import discord
 from discord.ext import commands
 from discord.ext.commands import CheckFailure
@@ -5,7 +6,7 @@ import os
 from dotenv import load_dotenv
 import requests
 from sqlalchemy.orm import Session, sessionmaker
-from sqlalchemy import true ,create_engine
+from sqlalchemy import true ,create_engine,select
 from sqlalchemy.sql import exists
 import sys
 
@@ -19,7 +20,6 @@ engine = create_engine('postgresql+psycopg2://postgres:aoGY0J9U9o@hypemail-db-st
 Session = sessionmaker(bind=engine)
 Session.configure(bind=engine)
 session = Session()
-
 
 
 #login event
@@ -147,6 +147,7 @@ async def data(server_id,channel_id,channel_name,author):
         print('user data exists')
 
 
+
 #transaction
 @client.command()
 async def set_nft(message,*,slug_name):
@@ -172,51 +173,110 @@ async def set_nft(message,*,slug_name):
         if session.query(exists().where(Discord_User.set_nft_channel_id == str(message.channel.id))).scalar() == True:
             channel_id = message.channel.id
             message_channel_name = client.get_channel(channel_id)
+            print('channel check')
         
 
             response = requests.get(f'https://api.opensea.io/collection/{slug_name}').json()['collection']['primary_asset_contracts']
             # print(len(response))
             for x in response:
-                if session.query(Contract).filter(Contract.contract_type == str(x['address']),Contract.contract_type == str(x["asset_contract_type"])).count() == 0:
+                if session.query(Contract).filter(Contract.contract_type == str(x['address']),Contract.contract_type == str(x['asset_contract_type'])).count() == 0:
                     
                     address = x['address']
                     print('nft address -'+address)
                     
                     if address != None:
-                        headers = {'X-API-Key': 'xha1n5zJ86je4uT9ryM751OMv24JPr08xpsGKachXQ8GyazgRI3SRwkfs35Tzo7h'}
-                        
+                        print('here')
+                        headers = {'X-API-Key': 'xha1n5zJ86je4uT9ryM751OMv24JPr08xpsGKachXQ8GyazgRI3SRwkfs35Tzo7h','accept': 'application/json'}
+                        print('here')
                         transaction_resp = requests.get(f'https://deep-index.moralis.io/api/v2/nft/{address}/trades?chain=eth&from_date=2022-03-15&marketplace=opensea',headers=headers).json()['total']
+                        print('here')
                         total = str(transaction_resp-1)
                         
                         print(total)
                         
-                        transaction_response = requests.get(f'https://deep-index.moralis.io/api/v2/nft/{address}/trades?chain=eth&from_date=2022-03-15&marketplace=opensea&offset={total}',headers=headers).json()['result'][0]
-                        print(transaction_response)
-                        transaction_hash = transaction_response['transaction_hash']
                         
-                        print(transaction_hash)
                         
-                        # token_ids = transaction_response['token_ids']
+        
                         
-                        # print(token_ids)
-                        collection = session.query(Collection).filter_by(slug=slug_name).first()
-                        contract = Contract(user_id=user.id,collection_id=collection.id,contract_address=str(x['address']),contract_type=str(x["asset_contract_type"]),latest_transaction_hash=str(transaction_hash))
-                        session.add(contract)
-                        session.commit()
+                                                
+                        if session.query(session.query(Contract).filter_by(contract_address=address).exists()).scalar():
+                            # if not session.query(session.query(Contract).filter_by(total_transaction=total).exists()).scalar():
+                            #     old_total = session.query(Contract).filter_by(contract_address=address).first()
+                            #     print('started collecting all transaction')
+                                
+                            #     print(type(old_total.total_transaction))                              
+                            
+                            #     print('collecting all transaction')
 
-                        icon = requests.get(f'https://api.opensea.io/collection/{slug_name}').json()['collection']['image_url']
-                        
-                        embed = discord.Embed(
-                            title = f"NFT = {slug_name}",
-                            description = "NFT Transaction",
-                            color = discord.Color.dark_gold()
-                        )
-                        embed.set_thumbnail(url=icon)
+                            #     new_total = str(int(total)-int(old_total.total_transaction))
 
-                        for key ,value in transaction_response.items():
-                            embed.add_field(name=key, value=value ,inline=True)
-                        
-                        await message_channel_name.send(embed=embed)
+                            #     for i in new_total:
+                            #         offset_value = int(old_total.total_transaction)+int(i)
+                            #         print(offset_value)
+                            #         transaction_response = requests.get(f'https://deep-index.moralis.io/api/v2/nft/{address}/trades?chain=eth&from_date=2022-03-15&marketplace=opensea&offset={offset_value}',headers=headers).json()['result'][0]
+                            #         print(transaction_response)
+                            #         transaction_hash = transaction_response['transaction_hash']
+                            #         print(transaction_hash)
+                            #         print(type(offset_value))
+                            #         print(type(x['address']))
+
+                            #         # token_ids = transaction_response['token_ids']
+                                    
+                            #         # print(token_ids)
+                            #         collection = session.query(Collection).filter_by(slug=slug_name).first()
+                            #         contract = Contract(user_id=user.id,collection_id=collection.id,contract_address=x['address'],contract_type=x['asset_contract_type'],latest_transaction_hash=transaction_hash,total_transaction=str(offset_value))
+                            #         session.add(contract)
+                            #         session.commit()
+
+                            #         icon = requests.get(f'https://api.opensea.io/collection/{slug_name}').json()['collection']['image_url']
+                                    
+                            #         embed = discord.Embed(
+                            #             title = f"NFT = {slug_name}",
+                            #             description = "NFT Transaction",
+                            #             color = discord.Color.dark_gold()
+                            #         )
+                            #         embed.set_thumbnail(url=icon)
+
+                            #         for key ,value in transaction_response.items():
+                            #             embed.add_field(name=key, value=value ,inline=True)
+                                    
+                            #         await message_channel_name.send(embed=embed)
+                            # else:
+                            icon = str(message.guild.icon_url)
+                            embed = discord.Embed(title="Update",description = "No transaction held")
+                            embed.set_thumbnail(url=icon)
+                            await message_channel_name.send(embed=embed)  
+                        else:    
+                            
+                            print(total)
+                            transaction_response = requests.get(f'https://deep-index.moralis.io/api/v2/nft/{address}/trades?chain=eth&from_date=2022-03-15&marketplace=opensea&offset={total}',headers=headers).json()['result'][0]
+                            print(transaction_response)
+                            transaction_hash = transaction_response['transaction_hash']
+                            
+                            print(transaction_hash)
+
+
+                            # token_ids = transaction_response['token_ids']
+                            
+                            # print(token_ids)
+                            collection = session.query(Collection).filter_by(slug=slug_name).first()
+                            contract = Contract(user_id=user.id,collection_id=collection.id,channel_id=channel_id,contract_address=str(x['address']),contract_type=str(x["asset_contract_type"]),latest_transaction_hash=str(transaction_hash),total_transaction=total)
+                            session.add(contract)
+                            session.commit()
+
+                            icon = requests.get(f'https://api.opensea.io/collection/{slug_name}').json()['collection']['image_url']
+                            
+                            embed = discord.Embed(
+                                title = f"NFT = {slug_name}",
+                                description = "NFT Transaction",
+                                color = discord.Color.dark_gold()
+                            )
+                            embed.set_thumbnail(url=icon)
+
+                            for key ,value in transaction_response.items():
+                                embed.add_field(name=key, value=value ,inline=True)
+                            
+                            await message_channel_name.send(embed=embed)
                 else:
                     print('error')        
         else:

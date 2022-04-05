@@ -81,10 +81,12 @@ class Contract(CustomBase):
     user = relationship('User', back_populates='contract')
     collection_id = Column(Integer, ForeignKey('collection.id'))
     collection = relationship('Collection', back_populates='contract')
+    channel_id = Column(String(128)) #sales-nft = 953565311741857793
 
-    contract_address = Column(String(512), unique=True, nullable=False)
+    contract_address = Column(String(512), nullable=False)
     contract_type = Column(String(512)) # non-fungiable,semi-fungiable
     latest_transaction_hash = Column(String(512))
+    total_transaction = Column(String(512)) #no of transaction
 
 
 class History(CustomBase):
