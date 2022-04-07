@@ -1,6 +1,6 @@
 from turtle import title
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 from discord.ext.commands import CheckFailure
 import os
 from dotenv import load_dotenv
@@ -190,7 +190,7 @@ async def set_nft(message,*,slug_name):
                         print('here')
                         transaction_resp = requests.get(f'https://deep-index.moralis.io/api/v2/nft/{address}/trades?chain=eth&from_date=2022-03-15&marketplace=opensea',headers=headers).json()['total']
                         print('here')
-                        total = str(transaction_resp-1)
+                        total = str(transaction_resp-10)
                         
                         print(total)
                         
@@ -284,7 +284,17 @@ async def set_nft(message,*,slug_name):
     else:
         await message.send("User not exists. Use $set_channel command to set user and then set the nft")
         
+# @tasks.loop(seconds=10)
+# async def called_once_a_day():
+#     okauu = 953565311741857793
+#     message_channel = client.get_channel(okauu)
+#     print(f"Got channel {message_channel}")
+#     await message_channel.send("Your message")
 
+# @called_once_a_day.before_loop
+# async def before():
+#     await client.wait_until_ready()
+#     print("Finished waiting")
 
 
 #set channel for nft command   
@@ -340,4 +350,5 @@ async def set_channel_error(ctx, error):
 
 
 load_dotenv()
+# called_once_a_day.start()
 client.run(os.getenv('TOKEN'))
